@@ -1,4 +1,5 @@
 #include "layer.h"
+#include "iostream"
 
 Matrix Layer::getNodes() const
 {
@@ -10,19 +11,80 @@ void Layer::setNodes(const Matrix &value)
     nodes = value;
 }
 
-Layer::Layer(unsigned int num_nodes_,ACTIVATION activation_): num_nodes(num_nodes_),activation(activation_)
+unsigned int Layer::getNum_nodes() const
+{
+    return num_nodes;
+}
+
+Layer *Layer::getInputLayer() const
+{
+    return inputLayer;
+}
+
+void Layer::setInputLayer(Layer *value)
+{
+    inputLayer = value;
+}
+
+Layer *Layer::getOutputLayer() const
+{
+    return outputLayer;
+}
+
+void Layer::setOutputLayer(Layer *value)
+{
+    outputLayer = value;
+}
+
+Matrix Layer::getBias() const
+{
+    return bias;
+}
+
+void Layer::setBias(const Matrix &value)
+{
+    bias = value;
+}
+
+Matrix Layer::getWeights() const
+{
+    return weights;
+}
+
+void Layer::setWeights(const Matrix &value)
+{
+    weights = value;
+}
+
+Layer::Layer(unsigned int num_nodes_,ACTIVATION activation_, LAYERTYPE type_): num_nodes(num_nodes_),activation(activation_), type(type_)
+{
+
+
+}
+
+Layer::~Layer()
 {
 
 }
 
-void Layer::init(unsigned int nodes_next_layer)
+Matrix Layer::calc_output()
 {
-    this->weights = Matrix(nodes_next_layer,this->num_nodes);
-    this->bias = Matrix(this->num_nodes,1);
 
 }
+
+void Layer::init()
+{
+
+}
+
 
 void Layer::activate()
 {
     this->nodes.map(Activation::func(this->activation));
 }
+
+Matrix Layer::getDeriv()
+{
+
+}
+

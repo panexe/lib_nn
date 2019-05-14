@@ -3,25 +3,18 @@
 
 #include "matrix.h"
 #include "activation.h"
+#include "layer.h"
+#include "inputlayer.h"
+#include "outputlayer.h"
+#include "denselayer.h"
 
 class NeuralNetwork
 {
-    std::vector<unsigned int> nodes_amounts;
-    std::vector<ACTIVATION> activations;
 
     unsigned int input_size;
     double lr;
 
-    Matrix weights_input;
-    Matrix bias_input;
-
-
-    std::vector<Matrix> layers;
-    std::vector<Matrix> weights;
-    std::vector<Matrix> bias;
-
-    Matrix output_nodes;
-    Matrix bias_output;
+    std::vector<Layer*> layers;
 
     static double sigmoid(const double& x);
 

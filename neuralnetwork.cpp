@@ -17,16 +17,14 @@ double NeuralNetwork::sigmoid_d(const double &x)
 
 NeuralNetwork::NeuralNetwork(unsigned int input_size_):input_size(input_size_)
 {
-    this->nodes_amounts.push_back(input_size);
-    //this->activations.push_back(ACTIVATION::relu);
+    this->layers.push_back(new InputLayer(input_size));
 
 }
 
 void NeuralNetwork::addLayer(unsigned int nodes, ACTIVATION activation)
 {
     if(nodes != 0){
-        this->nodes_amounts.push_back(nodes);
-        this->activations.push_back(activation);
+        this->layers.push_back(new DenseLayer(nodes,activation));
         return;
     }
     std::cerr << "0 isnt a valid amount of nodes ";
@@ -37,22 +35,21 @@ void NeuralNetwork::compile(unsigned int output_size, double lr_, ACTIVATION act
 {
     this->lr = lr_;
 
-    unsigned int i;
-    for(i = 0; i < this->nodes_amounts.size()-1;i++){
-        this->layers.push_back(Matrix(nodes_amounts[i],1));
-        this->bias.push_back(Matrix(this->nodes_amounts[i+1],1));
-        this->weights.push_back(Matrix(nodes_amounts[i+1],nodes_amounts[i]));
+    this->layers.push_back(new OutputLayer(output_size,activation));
+    this->layers[0]->setOutputLayer(this->layers[1]);
+    this->layers[0]->init();
 
-        this->bias[i].setValues(1);
-        this->weights[i].randomize(-1,1);
+    unsigned int i;
+    for(i = 1; i <this->layers.size()-1;i++){
+        layers[i]->setInputLayer(layers[i-1]);
+        layers[i]->setOutputLayer(layers[i+1]);
+        layers[i]->init();
     }
-    this->layers.push_back(Matrix(nodes_amounts[i],1));
-    this->layers.push_back(Matrix(output_size,1));
-    this->bias.push_back(Matrix(output_size,1));
-    this->bias[i].setValues(1);
-    this->weights.push_back(Matrix(output_size,nodes_amounts[i]));
-    this->weights[i].randomize(-1,1);
-    this->activations.push_back(activation);
+    layers[i]->setInputLayer(layers[i-1]);
+    layers[i]->init();
+
+
+
 
 
 
@@ -60,9 +57,23 @@ void NeuralNetwork::compile(unsigned int output_size, double lr_, ACTIVATION act
 
 Matrix NeuralNetwork::feedForward(Matrix input)
 {
-    // INPUT DIM : rows = this.input_nodes , cols = 1
-    this->layers[0] = input;
+    if(input.getCols() != 1 || input.getRows() != this->input_size ){
+        std::cerr << "The input-size is wrong !\n";
+        return Matrix(0,0);
+    }
 
+    // INPUT DIM : rows = this.input_nodes , cols = 1
+    this->layers[0]->setNodes(input);
+
+    unsigned int i;
+    for(i = 1; i < this->layers.size();i++){
+        this->layers[i]->setNodes(layers[i-1]->calc_output());
+        this->layers[i]->activate();
+
+    }
+    return this->layers[i-1]->getNodes();
+
+    /*
     // HIDDEN LAYER -----------------------------------------------
     unsigned int i;
     for (i = 1;i < this->layers.size();i++) {
@@ -78,7 +89,7 @@ Matrix NeuralNetwork::feedForward(Matrix input)
     return this->layers[i-1];
 
 
-    /*
+
     // CALC Z = W * I + BIAS
     this->hidden_nodes = Matrix::multiply(this->weights_input,input);
     // ADD BIAS
@@ -109,6 +120,7 @@ void NeuralNetwork::backProp(Matrix x, Matrix y)
 
 void NeuralNetwork::bp(Matrix x, Matrix y, bool quiet)
 {// FEED FORWARD
+
     this->feedForward(x);
 
     // CALC ERROR
@@ -116,37 +128,39 @@ void NeuralNetwork::bp(Matrix x, Matrix y, bool quiet)
 
     unsigned long long i = this->layers.size()-1;
 
-    Matrix error = layers[i] - y;
+    Matrix error = layers[i]->getNodes() - y;
     if(!quiet)
         std::cout << "Error : " << 0.5*(error.sum().toVector()[0])*(error.sum().toVector()[0]) << std::endl;
 
     //Matrix deriv = Matrix::hadamard(layers[i],1-this->layers[i]);
-    Matrix deriv;
-    if(activations[i-1] == ACTIVATION::softmax){
-        deriv = Activation::softmax_d(layers[i]);
-    }else{
-        deriv = Matrix::map(layers[i],Activation::deriv(activations[i-1]));
-    }
-
+    Matrix deriv = layers[i]->getDeriv();
     Matrix delta = Matrix::hadamard(error,deriv);
-    Matrix delta_weight = delta * Matrix::transpose(this->layers[i-1]);
 
-    this->weights[i-1] -= delta_weight * lr;
-    this->bias[i-1] -= delta * lr;
+
+    Matrix delta_weight = delta * Matrix::transpose(this->layers[i-1]->getNodes());
+
+    this->layers[i-1]->setWeights(this->layers[i-1]->getWeights() -= delta_weight * lr);
+    this->layers[i-1]->setBias(this->layers[i-1]->getBias() -= delta * lr);
 
     i--;
     for(;i > 0;i--){
         //deriv = Matrix::hadamard(layers[i],1-this->layers[i]);
-        deriv = Matrix::map(layers[i],Activation::deriv(activations[i-1]));
-        delta = Matrix::transpose(weights[i]) * delta;
+        deriv = layers[i]->getDeriv();
+        delta = Matrix::transpose(layers[i]->getWeights()) * delta;
         delta.hadamard(deriv);
-        delta_weight = delta * Matrix::transpose(this->layers[i-1]);
+        delta_weight = delta * Matrix::transpose(this->layers[i-1]->getNodes());
 
-        this->weights[i-1] -= delta_weight * lr;
-        this->bias[i-1] -= delta * lr;
+        this->layers[i-1]->setWeights(this->layers[i-1]->getWeights() -= delta_weight * lr);
+        this->layers[i-1]->setBias(this->layers[i-1]->getBias() -= delta * lr);
+
 
     }
+
+
+
     /*
+
+
     // FEED FORWARD
     this->feedForward(x);
 

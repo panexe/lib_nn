@@ -89,6 +89,8 @@ public:
     friend Matrix operator-(double a,Matrix b);
 
 
+    unsigned long getRows() const;
+    unsigned long getCols() const;
 };
 
 Matrix operator-(double a, Matrix b);

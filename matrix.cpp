@@ -6,6 +6,16 @@
 
 
 
+unsigned long Matrix::getRows() const
+{
+    return rows;
+}
+
+unsigned long Matrix::getCols() const
+{
+    return cols;
+}
+
 Matrix::Matrix(unsigned long rows_, unsigned long cols_, bool initZero): rows(rows_),cols(cols_)
 {
     this->values.reserve(this->rows*this->cols);

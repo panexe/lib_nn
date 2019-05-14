@@ -5,13 +5,19 @@ CONFIG -= qt
 
 SOURCES += \
         activation.cpp \
+        denselayer.cpp \
+        inputlayer.cpp \
         layer.cpp \
         main.cpp \
         matrix.cpp \
-        neuralnetwork.cpp
+        neuralnetwork.cpp \
+        outputlayer.cpp
 
 HEADERS += \
     activation.h \
+    denselayer.h \
+    inputlayer.h \
     layer.h \
     matrix.h \
-    neuralnetwork.h
+    neuralnetwork.h \
+    outputlayer.h

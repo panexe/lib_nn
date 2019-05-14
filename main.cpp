@@ -39,6 +39,8 @@ int main()
     res =nn.feedForward(Matrix::fromVector(vals3));
     res.print();
 
+    //return 0;
+
     for(int i = 0; i < 10000;i++){
         nn.bp(Matrix::fromVector(vals0),Matrix::fromVector(result0));
         nn.bp(Matrix::fromVector(vals1),Matrix::fromVector(result1));
